@@ -1,0 +1,112 @@
+# ===============================
+# 🔐 ENVIRONMENT VARIABLES
+# ===============================
+.env
+.env.*
+*.env
+
+# ===============================
+# 🐍 PYTHON
+# ===============================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+uv.lock
+
+# ===============================
+# 📦 PACKAGE / BUILD
+# ===============================
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# ===============================
+# 📓 JUPYTER
+# ===============================
+.ipynb_checkpoints/
+*.ipynb
+
+# (Optional: keep notebooks if needed)
+# !notebooks/
+
+# ===============================
+# 🧠 MODELS & EMBEDDINGS
+# ===============================
+models/
+*.bin
+*.pt
+*.pth
+*.ckpt
+*.onnx
+
+# HuggingFace cache
+.cache/
+huggingface/
+transformers_cache/
+
+# ===============================
+# 🔍 VECTOR DATABASES / INDEXES
+# ===============================
+faiss_index/
+*.faiss
+*.index
+*.pkl
+
+# ===============================
+# 📊 DATA FILES
+# ===============================
+data/
+*.csv
+*.xlsx
+*.json
+*.parquet
+
+# (Optional: keep sample data)
+# !data/sample/
+
+# ===============================
+# 🖥 STREAMLIT
+# ===============================
+.streamlit/secrets.toml
+
+# ===============================
+# 🧾 LOGS
+# ===============================
+logs/
+*.log
+
+# ===============================
+# ⚙️ IDE / EDITOR
+# ===============================
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ===============================
+# 🐳 DOCKER (optional future)
+# ===============================
+*.tar
+
+# ===============================
+# 🧪 TEST / CACHE
+# ===============================
+.pytest_cache/
+.mypy_cache/
+.coverage
+
+# ===============================
+# 🧹 MISC
+# ===============================
+.DS_Store
+Thumbs.db
