@@ -1,165 +1,189 @@
-````md
 # Agentic Research Intelligence Platform
 
-A multi-agent research assistant that evolved from a Phase 2 agentic RAG prototype into a more stable, better-structured, and recruiter-ready research workflow system.
+A multi-agent research workflow for grounded question answering over live web sources.
 
-The project is designed to answer research-style questions through a multi-stage pipeline that combines planning, live web search, scraping, semantic retrieval, grounded report generation, and evaluation-driven refinement.
+This project goes beyond a simple LLM prompt-and-response demo by combining structured query planning, multi-source retrieval, document scraping, semantic evidence selection, citation-aware report generation, and evaluation-driven refinement in a single end-to-end pipeline.
 
-## What the system does
+The goal is to answer research-style questions in a way that is more **grounded**, **traceable**, and **systematic** than a standard chatbot workflow.
 
-The workflow currently includes:
+---
 
-- planner-driven subquery generation
-- multi-source web retrieval
-- live source deduplication and ranking
-- document scraping and chunking
-- semantic evidence retrieval with embeddings
-- citation-aware report generation
-- structured evaluation and refinement loop
-- Streamlit observability dashboard
+## Highlights
 
-## Phase 2 — Core Agentic RAG Workflow
+* Multi-agent research pipeline across planning, search, scraping, retrieval, writing, and evaluation
+* Planner-driven subquery generation for better topic coverage
+* Multi-source live web retrieval using Tavily
+* Document scraping with source metadata preservation
+* Semantic chunk retrieval using sentence-transformer embeddings
+* Citation-aware report generation
+* Structured evaluation on relevance, grounding, and completeness
+* Refinement loop for weak initial outputs
+* Streamlit dashboard for observability, evidence inspection, and latency tracking
 
-Phase 2 focused on building the first end-to-end multi-agent research workflow.
+---
 
-### Added in Phase 2
-- Built a **6-stage agentic workflow** across:
-  - planning
-  - search
-  - scraping
-  - retrieval
-  - synthesis
-  - evaluation
-- Added **planner-driven subquery generation**
-- Added **multi-source Tavily web search**
-- Added **document scraping** for live pages
-- Added **chunking + semantic retrieval** using sentence-transformer embeddings
-- Added **citation-aware report generation**
-- Added an **evaluation and refinement loop**
-- Added **latency tracking** across major workflow stages
-- Built a **50+ query evaluation workflow** to test relevance, grounding, and completeness across different research-style prompts
-- Built the first **Streamlit dashboard** for observability
+## Why this project matters
 
-### Goal of Phase 2
-The goal of Phase 2 was to move beyond a simple prompt-based demo and build a full research-oriented workflow that could retrieve evidence, generate grounded answers, and evaluate output quality.
+Research-style AI questions are harder than normal chat questions.
 
-## Phase 3 — Pipeline Stabilization, Structured Search, and UI Polish
+A standard LLM can produce fluent answers, but those answers may:
 
-Phase 3 focused on making the system more stable, better integrated, and easier to demo.
+* rely too much on model memory
+* miss important parts of the topic
+* be weakly grounded in real sources
+* be difficult to trace back to supporting evidence
 
-### Added / improved in Phase 3
-- Upgraded the **planner** to generate more structured subqueries with query types such as:
-  - overview
-  - technical
-  - recent
-  - risks
-- Refactored the **search layer** to support planner-generated multi-query retrieval
-- Added:
-  - duplicate URL removal
-  - lightweight result scoring
-  - total search-result limiting
-- Refactored the **orchestrator** so planner, search, retrieval, writing, and evaluation stages pass data in the correct format
-- Fixed document flow mismatches between:
-  - scraper output
-  - chunking
-  - UI display
-- Updated **chunking** to work cleanly with dict-based scraped documents
-- Added missing config support such as:
-  - `max_total_results`
-- Improved **LLM reliability and debugging visibility**
-- Improved **latency awareness** and pipeline-stage logs
-- Redesigned the **Streamlit UI** to make the project more polished and recruiter/demo friendly
+This project addresses that by turning one user question into a full research workflow:
 
-### Goal of Phase 3
-The goal of Phase 3 was to turn the project from a working prototype into a more stable, cleaner, and better-presented end-to-end system.
+* plan the topic
+* gather live sources
+* extract evidence
+* retrieve the strongest chunks
+* generate a grounded report
+* evaluate the output quality
 
-## Phase 4 — Planned Improvements
+---
 
-Phase 4 will focus on retrieval quality, source quality control, and performance improvements.
+## System Architecture
 
-### Planned for Phase 4
-- Parallelize more of the end-to-end workflow to reduce latency
-- Improve the retrieval stage with stronger evidence-selection logic
-- Add **domain trust scoring** for better source prioritization
-- Add **source credibility scoring** to reduce weak or noisy sources
-- Explore **second-stage reranking inside retrieval**
-- Add **manual whitelist / blacklist controls** for domain filtering
-- Improve source filtering so the system is less affected by duplicate or low-quality pages
-- Reduce prompt noise before writing and evaluation
-- Improve observability and latency control further
-- Continue balancing answer quality, grounding, and system efficiency
+The current workflow includes six main stages:
 
-### Goal of Phase 4
-The goal of Phase 4 is to make the system faster, more reliable, and stronger in evidence selection without changing the core 6-stage project story.
+1. **Planner Agent**
+   Breaks the user topic into focused research subqueries.
 
-## Architecture
+2. **Search Layer**
+   Sends those subqueries to Tavily and collects live web results.
 
-- **Planner Agent** decomposes the user topic into focused research subqueries.
-- **Search Layer** pulls multiple live results from Tavily for those subqueries.
-- **Reader Layer** scrapes selected pages and preserves source metadata.
-- **RAG Layer** chunks documents and indexes them with sentence-transformer embeddings.
-- **Retriever** selects the most relevant evidence for the original topic and planner-generated subqueries.
-- **Writer Agent** creates a citation-aware report using retrieved evidence.
-- **Evaluator Agent** scores the report on relevance, grounding, completeness, clarity, and citation coverage.
-- **Refinement Loop** rewrites the report when the score falls below threshold.
-- **Streamlit UI** shows subqueries, sources, evidence, final report, logs, and latency metrics.
+3. **Reader Layer**
+   Scrapes selected pages and preserves source metadata.
+
+4. **RAG Layer / Retriever**
+   Chunks documents, builds embeddings, and selects the most relevant evidence for the original query and planner-generated subqueries.
+
+5. **Writer Agent**
+   Generates a citation-aware report from retrieved evidence.
+
+6. **Evaluator Agent**
+   Scores the report on relevance, grounding, completeness, clarity, and citation coverage, and triggers refinement if needed.
+
+---
 
 ## End-to-End Workflow
 
-1. The user gives one research question.
-2. The planner breaks that question into multiple focused subqueries.
-3. Tavily searches each subquery and returns live web results.
-4. The system combines those results, removes duplicate URLs, and ranks them.
-5. The top-ranked URLs are scraped and converted into structured source documents.
-6. The scraped documents are chunked into smaller text segments.
-7. The retriever compares chunk embeddings against both the original query and planner-generated subqueries.
-8. The top retrieved chunks are selected as final evidence.
-9. The writer uses those chunks to generate a grounded report.
-10. The evaluator checks whether the report is relevant, grounded, and complete.
-11. If the score is too low, the refinement loop rewrites the report and re-evaluates it.
+1. The user asks one research question.
+2. The planner expands that question into multiple focused subqueries.
+3. Tavily searches each subquery and returns live results.
+4. The system combines results, removes duplicate URLs, and ranks them.
+5. The highest-ranked URLs are scraped into source documents.
+6. The source text is chunked into smaller evidence segments.
+7. The retriever compares chunk embeddings against the original query and planner-generated subqueries.
+8. The top evidence chunks are selected.
+9. The writer generates a grounded report from those chunks.
+10. The evaluator checks whether the answer is relevant, grounded, and complete.
+11. If needed, the refinement loop rewrites and re-evaluates the report.
+
+---
+
+## Example Retrieval Flow
+
+For a user query like:
+
+**“Explain vectorless RAG”**
+
+the planner may generate subqueries such as:
+
+* what is vectorless RAG
+* vectorless RAG architecture
+* latest vectorless RAG updates
+* vectorless RAG limitations and challenges
+
+Those subqueries are searched independently, their results are merged and deduplicated, and only the strongest sources are scraped.
+
+The retrieved documents are then chunked, and the retriever ranks chunks against:
+
+* the original user query
+* the overview subquery
+* the technical subquery
+* the recent-updates subquery
+* the risks/limitations subquery
+
+This allows the final answer to cover multiple angles of the topic instead of relying on only one search phrasing.
+
+---
 
 ## Evaluation Strategy
 
-To move beyond demo-based testing, the project includes a **50+ query evaluation workflow** covering:
-- overview questions
-- technical architecture questions
-- recent developments
-- risks and limitations
-- comparison prompts
-- practical use-case questions
+To move beyond single-demo testing, the project includes a **50+ query evaluation workflow** covering:
 
-The evaluation process was used to assess:
-- **relevance** — whether the answer addressed the query
-- **grounding / faithfulness** — whether the answer stayed supported by retrieved evidence
-- **completeness** — whether the answer covered enough of the topic to be useful
+* overview questions
+* technical architecture questions
+* recent developments
+* risks and limitations
+* comparison prompts
+* practical use-case questions
 
-This evaluation workflow helped surface weakly grounded outputs and guided improvements in retrieval quality and overall system behavior.
+The evaluation process focuses on:
 
-## Project Structure
+* **Relevance** — did the answer actually address the question?
+* **Grounding / Faithfulness** — was the answer supported by retrieved evidence?
+* **Completeness** — did the answer cover enough of the topic to be useful?
 
-```text
-agentic_research_platform/
-├── agents/
-│   ├── planner.py
-│   ├── writer.py
-│   └── evaluator.py
-├── core/
-│   ├── config.py
-│   ├── llm.py
-│   ├── orchestrator.py
-│   └── state.py
-├── evaluation/
-│   └── summary.py
-├── rag/
-│   ├── chunking.py
-│   └── retrieval.py
-├── tools/
-│   ├── scrape_tools.py
-│   └── search_tools.py
-├── app.py
-├── README.md
-└── requirements.txt
-````
+This helped identify weakly grounded outputs and guided improvements to retrieval quality and overall system behavior.
+
+---
+
+## Project Roadmap
+
+### Phase 2 — Core Agentic RAG Workflow
+
+Phase 2 established the first end-to-end research pipeline.
+
+**Added in Phase 2**
+
+* 6-stage agentic workflow across planning, search, scraping, retrieval, synthesis, and evaluation
+* planner-driven subquery generation
+* multi-source Tavily search
+* live page scraping
+* chunking and semantic retrieval with embeddings
+* citation-aware report generation
+* evaluation and refinement loop
+* latency tracking across workflow stages
+* initial Streamlit dashboard
+* 50+ query evaluation workflow
+
+### Phase 3 — Pipeline Stabilization and UI Polish
+
+Phase 3 focused on reliability, integration quality, and presentation.
+
+**Added / improved in Phase 3**
+
+* more structured planner-generated subqueries
+* multi-query search orchestration
+* duplicate URL removal and lightweight result scoring
+* cleaner orchestration between planner, search, retrieval, writing, and evaluation
+* chunking updates for dict-based scraped documents
+* improved config support such as `max_total_results`
+* better LLM reliability and debugging visibility
+* improved stage-level logs and latency awareness
+* cleaner, more polished Streamlit interface for demos and recruiter review
+
+### Phase 4 — Planned Improvements
+
+Phase 4 is focused on retrieval quality, source quality control, and performance improvements.
+
+**Planned for Phase 4**
+
+* parallelize more of the workflow to reduce latency
+* strengthen evidence selection inside retrieval
+* add domain trust scoring
+* add source credibility scoring
+* explore reranking inside the retrieval stage
+* add manual whitelist / blacklist controls for domains
+* improve source filtering for noisy or duplicate pages
+* reduce prompt noise before writing and evaluation
+* continue improving the balance between answer quality and system efficiency
+
+---
 
 ## Environment Variables
 
@@ -171,6 +195,8 @@ TAVILY_API_KEY=your_tavily_api_key
 GROQ_MODEL=llama-3.3-70b-versatile
 ```
 
+---
+
 ## Run Locally
 
 ```bash
@@ -178,20 +204,27 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
-## Good Groq Model Defaults
+---
+
+## Recommended Groq Models
 
 * `llama-3.3-70b-versatile` → strong quality-oriented default
 * `meta-llama/llama-4-scout-17b-16e-instruct` → better TPM budget for heavier research workflows
 * `llama-3.1-8b-instant` → faster / cheaper fallback
-* `openai/gpt-oss-20b` → alternative experimental option if enabled
+* `openai/gpt-oss-20b` → experimental alternative if enabled on your account
+
+---
 
 ## Deployment
 
-Use a Python service or Streamlit-compatible web service.
+For local development:
+
+```bash
+streamlit run app.py
+```
+
+For deployment environments that provide a runtime port:
 
 ```bash
 streamlit run app.py --server.port $PORT --server.address 0.0.0.0
-```
-
-```
 ```
