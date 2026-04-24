@@ -29,7 +29,12 @@ def _call_llm(payload):
         "Content-Type": "application/json",
     }
 
-    response = requests.post(CHAT_URL, headers=headers, json=payload, timeout=20)
+    response = requests.post(
+        CHAT_URL,
+        headers=headers,
+        json=payload,
+        timeout=60,   # increased from 20
+    )
 
     if response.status_code != 200:
         raise Exception(f"LLM Error: {response.text}")
@@ -37,7 +42,7 @@ def _call_llm(payload):
     return response.json()
 
 
-@retry(stop=stop_after_attempt(3), wait=wait_exponential())
+@retry(stop=stop_after_attempt(3), wait=wait_exponential(), reraise=True)
 def chat_completion(system_prompt, user_prompt, temperature=0.2, model=None):
     payload = {
         "model": model or GROQ_MODEL,
@@ -52,7 +57,7 @@ def chat_completion(system_prompt, user_prompt, temperature=0.2, model=None):
     return res["choices"][0]["message"]["content"]
 
 
-@retry(stop=stop_after_attempt(3), wait=wait_exponential())
+@retry(stop=stop_after_attempt(3), wait=wait_exponential(), reraise=True)
 def chat_json(system_prompt, user_prompt, temperature=0.0, model=None):
     payload = {
         "model": model or GROQ_MODEL,

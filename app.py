@@ -2,89 +2,302 @@ from __future__ import annotations
 
 import pandas as pd
 import streamlit as st
+
 from core.config import settings
 from core.orchestrator import run_agentic_research
 
-st.set_page_config(page_title="Agentic Research Intelligence Platform", layout="wide")
+st.set_page_config(
+    page_title="Agentic Research Intelligence Platform",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
 
-st.title("🧠 Agentic Research Intelligence Platform")
-st.caption("Phase 2: multi-source retrieval, semantic evidence selection, citation-aware writing, and evaluation-driven refinement.")
+# -------------------------
+# Custom Styling
+# -------------------------
+st.markdown("""
+<style>
+    .main {
+        padding-top: 1.2rem;
+    }
 
+    .hero-box {
+        padding: 1.2rem 1.4rem;
+        border-radius: 18px;
+        background: linear-gradient(135deg, #0f172a 0%, #111827 100%);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.08);
+        margin-bottom: 1rem;
+    }
+
+    .hero-title {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.3rem;
+    }
+
+    .hero-subtitle {
+        font-size: 1rem;
+        color: #cbd5e1;
+        line-height: 1.5;
+    }
+
+    .section-card {
+        padding: 1rem 1rem 0.6rem 1rem;
+        border-radius: 16px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        margin-bottom: 1rem;
+    }
+
+    .small-muted {
+        color: #64748b;
+        font-size: 0.92rem;
+    }
+
+    .query-chip {
+        display: inline-block;
+        padding: 0.35rem 0.65rem;
+        border-radius: 999px;
+        background: #e0f2fe;
+        color: #075985;
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-right: 0.4rem;
+        margin-bottom: 0.4rem;
+    }
+
+    .chunk-box {
+        padding: 0.8rem 1rem;
+        border-radius: 14px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        margin-bottom: 0.8rem;
+    }
+
+    .report-box {
+        padding: 1rem 1.1rem;
+        border-radius: 16px;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
+    }
+
+    .stMetric {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        padding: 0.8rem;
+        border-radius: 14px;
+        box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# -------------------------
+# Header
+# -------------------------
+st.markdown("""
+<div class="hero-box">
+    <div class="hero-title">🧠 Agentic Research Intelligence Platform</div>
+    <div class="hero-subtitle">
+        Multi-source retrieval, semantic evidence selection, citation-aware writing,
+        and evaluation-driven refinement across a modular agent workflow.
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+# -------------------------
+# Sidebar
+# -------------------------
 with st.sidebar:
-    st.header("Settings")
-    st.write(f"**Model:** {settings.groq_model}")
-    st.write(f"**Embedding model:** {settings.embedding_model}")
+    st.header("⚙️ Settings")
+    st.write(f"**Model**: `{settings.groq_model}`")
+    st.write(f"**Embedding Model**: `{settings.embedding_model}`")
+    st.write(f"**Top-K Chunks**: `{settings.top_k_chunks}`")
+    st.write(f"**Max Search Results / Query**: `{settings.max_search_results}`")
+    st.write(f"**Max URLs to Scrape**: `{settings.max_urls_to_scrape}`")
     st.info("Required env vars: GROQ_API_KEY, TAVILY_API_KEY")
 
-query = st.text_input("Enter a research topic", placeholder="Example: Latest progress in multimodal RAG for enterprise search")
+# -------------------------
+# Input
+# -------------------------
+query = st.text_input(
+    "Enter a research topic",
+    placeholder="Example: Latest progress in multimodal RAG for enterprise search"
+)
 run = st.button("Run Research Pipeline", type="primary")
 
+# -------------------------
+# Main pipeline
+# -------------------------
 if run and query:
-    with st.spinner("Running planner, retrieval, writing, evaluation, and refinement..."):
+    with st.spinner("Running planner, search, scraping, retrieval, writing, and evaluation..."):
         state = run_agentic_research(query)
 
+    # Errors
     if state.errors:
         st.error("Pipeline encountered errors:")
         for err in state.errors:
             st.code(err)
 
+    # Metrics Row
     c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Sources scraped", state.metrics.get("document_count", 0))
-    c2.metric("Chunks indexed", state.metrics.get("chunk_count", 0))
-    c3.metric("Chunks retrieved", state.metrics.get("retrieved_chunk_count", 0))
-    c4.metric("Total latency (s)", state.metrics.get("total_latency_seconds", 0))
+    c1.metric("Sources Scraped", state.metrics.get("document_count", 0))
+    c2.metric("Chunks Indexed", state.metrics.get("chunk_count", 0))
+    c3.metric("Chunks Retrieved", state.metrics.get("retrieved_chunk_count", 0))
+    c4.metric("Total Latency (s)", state.metrics.get("total_latency_seconds", 0))
 
-    st.subheader("📌 Planned subqueries")
-    for item in state.planned_queries:
-        st.write(f"- {item}")
+    st.markdown("")
 
-    st.subheader("📰 Source documents")
-    for doc in state.documents:
-        with st.expander(f"{doc.source_id} — {doc.title}"):
-            st.write(doc.url)
-            st.write(doc.snippet)
-            st.write(doc.content[:1500] + ("..." if len(doc.content) > 1500 else ""))
-
-    st.subheader("🔎 Retrieved evidence chunks")
-    for chunk in state.selected_chunks:
-        with st.expander(f"{chunk.chunk_id} | {chunk.title}"):
-            st.write(chunk.url)
-            st.write(chunk.text)
-
-    st.subheader("📝 Final report")
-    st.markdown(state.report)
-
-    if state.evaluation:
-        st.subheader("📊 Evaluation")
-        eval_df = pd.DataFrame(
-            [{
-                "overall_score": state.evaluation.overall_score,
-                "relevance": state.evaluation.relevance,
-                "grounding": state.evaluation.grounding,
-                "completeness": state.evaluation.completeness,
-                "clarity": state.evaluation.clarity,
-                "citation_coverage": state.evaluation.citation_coverage,
-            }]
-        )
-        st.dataframe(eval_df, use_container_width=True)
-        st.write("**Strengths**")
-        for s in state.evaluation.strengths:
-            st.write(f"- {s}")
-        st.write("**Weaknesses**")
-        for w in state.evaluation.weaknesses:
-            st.write(f"- {w}")
-        st.write(f"**Verdict:** {state.evaluation.verdict}")
-
-    st.subheader("⏱️ Metrics")
-    latency_df = pd.DataFrame([
-        {"stage": k, "seconds": v}
-        for k, v in state.metrics.get("latency_seconds", {}).items()
+    # Tabs
+    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+        "📌 Planned Queries",
+        "📰 Source Documents",
+        "🔎 Evidence Chunks",
+        "📝 Final Report",
+        "📊 Evaluation & Metrics",
+        "🪵 Logs",
     ])
-    st.dataframe(latency_df, use_container_width=True)
 
-    st.subheader("🪵 Logs")
-    for log in state.logs:
-        st.write(f"- {log}")
+    # -------------------------
+    # Tab 1: Planned Queries
+    # -------------------------
+    with tab1:
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.subheader("Planned Subqueries")
+        st.caption("Generated by the planner agent to cover distinct aspects of the topic.")
+
+        if state.planned_queries:
+            for item in state.planned_queries:
+                q = item.get("query", "")
+                qtype = item.get("type", "unknown").title()
+                st.markdown(
+                    f"<span class='query-chip'>{qtype}</span> {q}",
+                    unsafe_allow_html=True
+                )
+        else:
+            st.info("No planned queries were generated.")
+        st.markdown("</div>", unsafe_allow_html=True)
+
+    # -------------------------
+    # Tab 2: Source Documents
+    # -------------------------
+    with tab2:
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.subheader("Scraped Source Documents")
+        st.caption("These are the successfully scraped documents passed into chunking and indexing.")
+
+        if state.documents:
+            for doc in state.documents:
+                source_id = doc.get("source_id", "Unknown")
+                title = doc.get("title", "Untitled")
+                url = doc.get("url", "")
+                snippet = doc.get("snippet", "")
+                text = doc.get("text", "")
+
+                with st.expander(f"{source_id} — {title}", expanded=False):
+                    st.markdown(f"**URL:** {url}")
+                    if snippet:
+                        st.markdown(f"**Snippet:** {snippet}")
+                    if text:
+                        preview = text[:1500] + ("..." if len(text) > 1500 else "")
+                        st.markdown("**Scraped Text Preview:**")
+                        st.write(preview)
+        else:
+            st.info("No source documents were scraped.")
+        st.markdown("</div>", unsafe_allow_html=True)
+
+    # -------------------------
+    # Tab 3: Evidence Chunks
+    # -------------------------
+    with tab3:
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.subheader("Retrieved Evidence Chunks")
+        st.caption("Top semantic chunks selected for final synthesis.")
+
+        if state.selected_chunks:
+            for chunk in state.selected_chunks:
+                with st.expander(f"{chunk.chunk_id} | {chunk.title}", expanded=False):
+                    st.markdown(f"**Source URL:** {chunk.url}")
+                    st.write(chunk.text)
+        else:
+            st.info("No chunks were retrieved.")
+        st.markdown("</div>", unsafe_allow_html=True)
+
+    # -------------------------
+    # Tab 4: Final Report
+    # -------------------------
+    with tab4:
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.subheader("Final Report")
+        st.caption("Citation-aware synthesized answer generated from retrieved evidence.")
+
+        if state.report:
+            st.markdown("<div class='report-box'>", unsafe_allow_html=True)
+            st.markdown(state.report)
+            st.markdown("</div>", unsafe_allow_html=True)
+        else:
+            st.info("No final report generated.")
+        st.markdown("</div>", unsafe_allow_html=True)
+
+    # -------------------------
+    # Tab 5: Evaluation & Metrics
+    # -------------------------
+    with tab5:
+        left, right = st.columns([1.2, 1])
+
+        with left:
+            st.markdown('<div class="section-card">', unsafe_allow_html=True)
+            st.subheader("Evaluation")
+            if state.evaluation:
+                eval_df = pd.DataFrame([{
+                    "overall_score": state.evaluation.overall_score,
+                    "relevance": state.evaluation.relevance,
+                    "grounding": state.evaluation.grounding,
+                    "completeness": state.evaluation.completeness,
+                    "clarity": state.evaluation.clarity,
+                    "citation_coverage": state.evaluation.citation_coverage,
+                }])
+                st.dataframe(eval_df, use_container_width=True)
+
+                st.markdown("**Strengths**")
+                for s in state.evaluation.strengths:
+                    st.write(f"- {s}")
+
+                st.markdown("**Weaknesses**")
+                for w in state.evaluation.weaknesses:
+                    st.write(f"- {w}")
+
+                st.success(f"Verdict: {state.evaluation.verdict}")
+            else:
+                st.info("No evaluation available.")
+            st.markdown("</div>", unsafe_allow_html=True)
+
+        with right:
+            st.markdown('<div class="section-card">', unsafe_allow_html=True)
+            st.subheader("Latency Metrics")
+            latency_df = pd.DataFrame([
+                {"stage": k, "seconds": v}
+                for k, v in state.metrics.get("latency_seconds", {}).items()
+            ])
+            if not latency_df.empty:
+                st.dataframe(latency_df, use_container_width=True)
+            else:
+                st.info("No latency metrics recorded.")
+            st.markdown("</div>", unsafe_allow_html=True)
+
+    # -------------------------
+    # Tab 6: Logs
+    # -------------------------
+    with tab6:
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.subheader("Execution Logs")
+        if state.logs:
+            for log in state.logs:
+                st.write(f"- {log}")
+        else:
+            st.info("No logs available.")
+        st.markdown("</div>", unsafe_allow_html=True)
 
 elif run:
     st.warning("Please enter a topic.")
